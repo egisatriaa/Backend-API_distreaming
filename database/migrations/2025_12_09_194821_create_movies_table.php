@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->integer('duration_minutes');
             $table->integer('release_year');
-            $table->text('poster_url', 255);
+            $table->text('poster_url')->nullable();;
             $table->timestamps();
             $table->softDeletes();
         });

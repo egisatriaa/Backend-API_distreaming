@@ -25,6 +25,8 @@ class Movie extends Model
         'duration_minutes' => 'integer'
     ];
 
+    protected $hidden = ['ratings_avg_score'];
+
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'movie_categories');

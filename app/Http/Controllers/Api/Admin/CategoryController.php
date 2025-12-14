@@ -13,8 +13,9 @@ class CategoryController extends Controller
 {
     public function index(): JsonResponse
     {
-        $categories = Category::all();
+        $categories = Category::whereNull('deleted_at')->get();
         return response()->json([
+            'success' => true,
             'message' => 'Categories berhasil ditampilkan.',
             'data' => $categories,
         ]);
@@ -30,14 +31,39 @@ class CategoryController extends Controller
         ]);
 
         return response()->json([
+            'success' => true,
             'message' => 'Category berhasil ditambahkan.',
             'data' => $category,
         ], 201);
     }
 
-    public function show(Category $category): JsonResponse
+    public function show(string $category): JsonResponse
     {
+        if (!is_numeric($category)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ID category tidak valid.',
+            ], 400);
+        }
+
+        $category = Category::withTrashed()->find((int) $category);
+
+        if (!$category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Categori tidak ditemukan',
+            ], 404);
+        }
+
+        if ($category->deleted_at) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category ini sudah di soft delete.',
+            ], 404);
+        }
+
         return response()->json([
+            'success' => true,
             'message' => 'Category berhasil ditampilkan.',
             'data' => $category,
         ]);
@@ -53,23 +79,58 @@ class CategoryController extends Controller
         ]);
 
         return response()->json([
+            'success' => true,
             'message' => 'Category berhasil update.',
             'data' => $category,
         ]);
     }
 
-    public function destroy(Request $request, Category $category): JsonResponse
+    public function destroy(Request $request, string $category): JsonResponse
     {
+        if (!is_numeric($category)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ID tidak valid'
+            ], 400);
+        }
+
+        $category = Category::withTrashed()->find((int) $category);
+
+        if (!$category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category tidak ditemukan'
+            ], 404);
+        }
         $force = $request->boolean('force');
 
         if ($force) {
+            // Hanya boleh hard delete jika sudah di soft delete
+            if (is_null($category->deleted_at)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak bisa menghapus permanen category yang masih aktif. Silakan soft delete terlebih dahulu.',
+                ], 422);
+            }
+
             $category->forceDelete();
             $message = 'Category dihapus permanen.';
         } else {
+            // Soft delete hanya jika belum dihapus
+            if (!is_null($category->deleted_at)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Category ini sudah di soft delete.',
+                ], 400);
+            }
+
             $category->delete();
-            $message = 'Category di soft delete';
+            $message = 'Category berhasil di soft delete.';
         }
 
-        return response()->json(['message' => $message]);
+        return response()->json([
+            'success' => true,
+            'message' => $message
+        ]);
     }
 }

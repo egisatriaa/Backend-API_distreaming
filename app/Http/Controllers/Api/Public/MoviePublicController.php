@@ -14,7 +14,9 @@ class MoviePublicController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        // withAvg
         $query = Movie::with('categories')
+            ->withAvg('ratings', 'score')
             ->whereNull('deleted_at');
 
         //search by title
@@ -39,10 +41,9 @@ class MoviePublicController extends Controller
             $sortBy = 'release_year';
         }
 
+        //  order by
         if ($sortBy === 'rating') {
-            // Sort by avg rating (gunakan subquery atau join)
-            $query->withAvg('ratings', 'score')
-                ->orderBy('ratings_avg_score', $order);
+            $query->orderBy('ratings_avg_score', $order);
         } else {
             $query->orderBy($sortBy, $order);
         }
@@ -53,10 +54,9 @@ class MoviePublicController extends Controller
 
         $movies = $query->paginate($perPage);
 
-        //Tambahkan rating_class ke setiap movie
-
+        //Tambah rating_class ke setiap movie
         $movies->getCollection()->transform(function ($movie) {
-            $avgRating = $movie->ratings_avg_score ?? $movie->ratings()->avg('score') ?? 0;
+            $avgRating = $movie->ratings_avg_score ?? 0;
 
             if ($avgRating >= 8.5) {
                 $ratingClass = 'Top Rated';
@@ -73,24 +73,38 @@ class MoviePublicController extends Controller
         });
 
         return response()->json([
+            'success' => true,
             'message' => 'Movies berhasil ditampilkan.',
-            'data' => $movies->withQueryString(), 
+            'data' => $movies->withQueryString(),
         ]);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Movie $movie): JsonResponse
+    public function show(string $movie): JsonResponse
     {
-        if ($movie->deleted_at !== null) {
-            return response()->json(['message' => 'Movie tidak ditemukan'], 404);
+        if (!is_numeric($movie)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ID movie tidak valid.',
+            ], 400);
         }
 
-        $movie->load('categories');
+        // Cari HANYA movie yang aktif + hitung avg rating dalam 1 query
+        $movieModel = Movie::withAvg('ratings', 'score')
+            ->with('categories')
+            ->find((int) $movie);
 
-        // Hitung rating rata-rata & kelas
-        $avgRating = $movie->ratings()->avg('score') ?? 0;
+        if (!$movieModel) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak ditemukan',
+            ], 404);
+        }
+
+        $avgRating = $movieModel->ratings_avg_score ?? 0;
+
         if ($avgRating >= 8.5) {
             $ratingClass = 'Top Rated';
         } elseif ($avgRating >= 7.0) {
@@ -99,12 +113,13 @@ class MoviePublicController extends Controller
             $ratingClass = 'Regular';
         }
 
-        $movie->rating_avg = (float) number_format($avgRating, 1);
-        $movie->rating_class = $ratingClass;
+        $movieModel->rating_avg = (float) number_format($avgRating, 1);
+        $movieModel->rating_class = $ratingClass;
 
         return response()->json([
+            'success' => true,
             'message' => 'Movie berhasil ditampilkan.',
-            'data' => $movie,
+            'data' => $movieModel,
         ]);
     }
 }

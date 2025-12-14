@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Public\MoviePublicController;
 use App\Http\Controllers\Api\User\RatingController;
 use App\Http\Controllers\Api\User\WatchHistoryController;
-
+use App\Http\Controllers\Api\Public\CategoryPublicController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -18,13 +18,18 @@ Route::post('/register', [AuthenticationController::class, 'register']);
 Route::post('/login', [AuthenticationController::class, 'login']);
 
 //Route publik
-Route::get('/movies', [MoviePublicController::class, 'index']);
-Route::get('/movies/{movie}', [MoviePublicController::class, 'show']);
+Route::prefix('guest')->group(function () {
+    Route::get('/movies', [MoviePublicController::class, 'index']);
+    Route::get('/movies/{movie}', [MoviePublicController::class, 'show']);
+    Route::get('/categories', [CategoryPublicController::class, 'index']);
+    Route::get('/categories/{category}', [CategoryPublicController::class, 'show']);
+});
 
-// Route yang memerlukan autentikasi
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', fn(Request $request) => $request->user()); // kembalikan user yang sedang login
+// Route User yang memerlukan autentikasi
+Route::prefix('user')->middleware('auth:sanctum')->group(function () {
+    Route::get('/me', fn(Request $request) => $request->user());
     Route::post('/logout', [AuthenticationController::class, 'logout']);
+    Route::get('/movies', [MoviePublicController::class, 'index']);
     Route::post('/movies/{movie}/rate', [RatingController::class, 'store']);
     Route::get('/movies/{movie}/ratings', [RatingController::class, 'index']);
     Route::post('/movies/{movie}/watch', [WatchHistoryController::class, 'store']);

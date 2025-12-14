@@ -11,10 +11,28 @@ use Illuminate\Http\Request;
 
 class WatchHistoryController extends Controller
 {
+    public function index(Request $request): JsonResponse
+    {
+        $watchHistory = $request->user()
+            ->watchHistory()
+            ->with('movie:id,title,poster_url')
+            ->orderByDesc('watched_at')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Riwayat tontonan berhasil ditampilkan.',
+            'data' => $watchHistory,
+        ]);
+    }
+
     public function store(StoreWatchHistoryRequest $request, Movie $movie): JsonResponse
     {
         if ($movie->deleted_at !== null) {
-            return response()->json(['message' => 'Film tidak ditemukan.'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Film tidak ditemukan.'
+            ], 404);
         }
 
         $existing = WatchHistory::where('user_id', $request->user()->id)
@@ -22,10 +40,10 @@ class WatchHistoryController extends Controller
             ->first();
 
         if ($existing) {
-            // Update entri yang ada (opsional: bisa juga buat entri baru tiap sesi)
+            // Update entri yang ada
             $existing->update([
                 'is_completed' => $request->boolean('is_completed'),
-                // watched_at tetap waktu pertama kali ditonton
+                'watched_at' => now(),
             ]);
             $watchHistory = $existing;
         } else {
@@ -34,27 +52,14 @@ class WatchHistoryController extends Controller
                 'user_id' => $request->user()->id,
                 'movie_id' => $movie->id,
                 'is_completed' => $request->boolean('is_completed'),
-                // watched_at diisi otomatis oleh model
+
             ]);
         }
 
         return response()->json([
+            'success' => true,
             'message' => 'Riwayat tontonan berhasil disimpan.',
             'data' => $watchHistory,
         ], 201);
-    }
-
-    public function index(Request $request): JsonResponse
-    {
-        $watchHistory = $request->user()
-            ->watchHistory()
-            ->with('movie:id,title,poster_url')
-            ->latest()
-            ->get();
-
-        return response()->json([
-            'message' => 'Riwayat tontonan berhasil ditampilkan.',
-            'data' => $watchHistory,
-        ]);
     }
 }

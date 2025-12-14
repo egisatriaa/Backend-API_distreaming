@@ -12,6 +12,7 @@ class WatchHistory extends Model
     protected $fillable = [
         'user_id',
         'movie_id',
+        'watched_at',
         'is_completed',
     ];
 
@@ -26,7 +27,7 @@ class WatchHistory extends Model
         parent::boot();
 
         static::creating(function ($watchHistory) {
-            // Jika watched_at belum di-set (misal oleh sistem internal), set ke waktu sekarang
+            // set ke waktu sekarang, Jika watched_at belum di-set (misal oleh sistem internal)
             if (empty($watchHistory->watched_at)) {
                 $watchHistory->watched_at = now();
             }

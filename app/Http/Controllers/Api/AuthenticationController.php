@@ -23,6 +23,7 @@ class AuthenticationController extends Controller
         ]);
 
         return response()->json([
+            'success' => true,
             'message' => 'Register Success',
             'data' => $user,
         ], 201);
@@ -36,13 +37,14 @@ class AuthenticationController extends Controller
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
             return response()->json([
-                'messages' => 'invalid credentials',
+                'message' => 'invalid credentials',
             ], 401);
         }
 
         $token = $user->createToken('api_token')->plainTextToken;
 
         return response()->json([
+            'success' => true,
             'message' => 'Login Success',
             'user' => $user,
             'token' => $token,
@@ -54,6 +56,7 @@ class AuthenticationController extends Controller
         $request->user()->tokens()->delete();
 
         return response()->json([
+            'success' => true,
             'message' => 'Logout success'
         ]);
     }

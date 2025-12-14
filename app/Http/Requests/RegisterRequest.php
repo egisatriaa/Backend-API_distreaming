@@ -20,7 +20,9 @@ class RegisterRequest extends FormRequest
             'password' => 'required|string|max:255|min:8'
         ];
     }
-
+    ///       
+// client    ====== admin CRUD admin
+//           ====== user READ
     public function messages(): array
 {
     return [
