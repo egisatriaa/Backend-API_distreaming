@@ -16,7 +16,7 @@ class Category extends Model
         'description',
     ];
 
-    protected $cast = [
+    protected $casts = [
         'category_name' => 'string',
     ];
 

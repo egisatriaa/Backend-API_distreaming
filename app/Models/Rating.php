@@ -16,7 +16,7 @@ class Rating extends Model
         'review_text'
     ];
 
-    protected $cast = [
+    protected $casts = [
         'score' => 'integer',
         'watched_at' => 'datetime',
     ];

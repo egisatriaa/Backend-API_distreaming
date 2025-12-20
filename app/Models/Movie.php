@@ -20,7 +20,7 @@ class Movie extends Model
         'poster_url',
     ];
 
-    protected $cast = [
+    protected $casts = [
         'release_year' => 'integer',
         'duration_minutes' => 'integer'
     ];
