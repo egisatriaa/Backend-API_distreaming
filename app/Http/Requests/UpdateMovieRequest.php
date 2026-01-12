@@ -17,8 +17,8 @@ class UpdateMovieRequest extends FormRequest
             'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
             'release_year' => 'sometimes|required|integer|min:1888|max:' . date('Y'),
-            'duration_minutes' => 'sometimes|required|integer|min:1',
-            'poster_url' => 'nullable|url|max:500',
+            'duration_minutes' => 'sometimes|required|integer|min:10',
+            'poster_url' => 'nullable|url|max:1000',
             'category_ids' => 'sometimes|required|array|min:1',
             'category_ids.*' => 'sometimes|required|integer|exists:categories,id',
         ];

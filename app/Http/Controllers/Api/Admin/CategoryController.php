@@ -5,132 +5,100 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
+use App\Http\Resources\Admin\CategoryAdminResource;
 use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Helpers\ApiResponse;
 
 class CategoryController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $categories = Category::whereNull('deleted_at')->get();
-        return response()->json([
-            'success' => true,
-            'message' => 'Categories berhasil ditampilkan.',
-            'data' => $categories,
-        ]);
+        $perPage = min($request->integer('per_page', 10), 100);
+
+        $categories = Category::withTrashed()
+            ->orderByDesc('created_at')
+            ->paginate($perPage);
+
+        return ApiResponse::success(
+            CategoryAdminResource::collection($categories->items()),
+            'Categories fetched successfully.',
+            200,
+            [
+                'current_page' => $categories->currentPage(),
+                'last_page' => $categories->lastPage(),
+                'per_page' => $categories->perPage(),
+                'total' => $categories->total(),
+            ]
+        );
     }
 
     public function store(StoreCategoryRequest $request): JsonResponse
     {
-        $data = $request->validated();
+        $category = Category::create($request->validated());
 
-        $category = Category::create([
-            'category_name' => $data['category_name'],
-            'description' => $data['description'] ?? null,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Category berhasil ditambahkan.',
-            'data' => $category,
-        ], 201);
+        return ApiResponse::success(
+            new CategoryAdminResource($category),
+            'Category created successfully.',
+            201
+        );
     }
 
-    public function show(string $category): JsonResponse
+    public function show(Category $category): JsonResponse
     {
-        if (!is_numeric($category)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'ID category tidak valid.',
-            ], 400);
-        }
-
-        $category = Category::withTrashed()->find((int) $category);
-
-        if (!$category) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Categori tidak ditemukan',
-            ], 404);
-        }
-
-        if ($category->deleted_at) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Category ini sudah di soft delete.',
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Category berhasil ditampilkan.',
-            'data' => $category,
-        ]);
+        return ApiResponse::success(
+            new CategoryAdminResource($category),
+            'Category detail fetched successfully.'
+        );
     }
 
-    public function update(UpdateCategoryRequest $request, Category $category): JsonResponse
-    {
-        $data = $request->validated();
+    public function update(
+        UpdateCategoryRequest $request,
+        Category $category
+    ): JsonResponse {
+        $category->update($request->validated());
 
-        $category->update([
-            'category_name' => $data['category_name'] ?? $category->category_name,
-            'description' => $data['description'] ?? $category->description,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Category berhasil update.',
-            'data' => $category,
-        ]);
+        return ApiResponse::success(
+            new CategoryAdminResource($category),
+            'Category updated successfully.'
+        );
     }
 
-    public function destroy(Request $request, string $category): JsonResponse
-    {
-        if (!is_numeric($category)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'ID tidak valid'
-            ], 400);
-        }
-
-        $category = Category::withTrashed()->find((int) $category);
-
-        if (!$category) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Category tidak ditemukan'
-            ], 404);
-        }
+    public function destroy(
+        Request $request,
+        Category $category
+    ): JsonResponse {
         $force = $request->boolean('force');
 
         if ($force) {
-            // Hanya boleh hard delete jika sudah di soft delete
-            if (is_null($category->deleted_at)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Tidak bisa menghapus permanen category yang masih aktif. Silakan soft delete terlebih dahulu.',
-                ], 422);
+            if (!$category->trashed()) {
+                return ApiResponse::error(
+                    'Hard delete hanya bisa dilakukan setelah soft delete.',
+                    422
+                );
             }
 
             $category->forceDelete();
-            $message = 'Category dihapus permanen.';
-        } else {
-            // Soft delete hanya jika belum dihapus
-            if (!is_null($category->deleted_at)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Category ini sudah di soft delete.',
-                ], 400);
-            }
 
-            $category->delete();
-            $message = 'Category berhasil di soft delete.';
+            return ApiResponse::success(
+                null,
+                'Category permanently deleted.'
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => $message
-        ]);
+        if ($category->trashed()) {
+            return ApiResponse::error(
+                'Category already soft deleted.',
+                400
+            );
+        }
+
+        $category->delete();
+
+        return ApiResponse::success(
+            null,
+            'Category soft deleted.'
+        );
     }
 }

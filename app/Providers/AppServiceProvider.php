@@ -16,14 +16,6 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // // Custom binding untuk category (include soft deleted)
-        // Route::bind('category', function ($value) {
-        //     return Category::withTrashed()->findOrFail($value);
-        // });
-
-        // // Custom binding untuk movie (include soft deleted)
-        // Route::bind('movie', function ($value) {
-        //     return Movie::withTrashed()->find($value);
-        // });
+        //
     }
 }

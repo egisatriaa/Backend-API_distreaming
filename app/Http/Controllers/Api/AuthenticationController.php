@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Helpers\ApiResponse;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-
 
 class AuthenticationController extends Controller
 {
@@ -19,14 +19,20 @@ class AuthenticationController extends Controller
         $user = User::create([
             'username' => $data['username'],
             'email' => $data['email'],
-            'password' => bcrypt($data['password']),
+            'password' => $data['password'],
+            'role' => 'user',
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Register Success',
-            'data' => $user,
-        ], 201);
+        return ApiResponse::success(
+            [
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
+            'Register success.',
+            201
+        );
     }
 
     public function login(LoginRequest $request)
@@ -36,28 +42,32 @@ class AuthenticationController extends Controller
         $user = User::where('email', $data['email'])->first();
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
-            return response()->json([
-                'message' => 'invalid credentials',
-            ], 401);
+            return ApiResponse::error('Invalid credentials.', 401);
         }
 
         $token = $user->createToken('api_token')->plainTextToken;
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Login Success',
-            'user' => $user,
-            'token' => $token,
-        ], 200);
+        return ApiResponse::success(
+            [
+                'user' => [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                ],
+                'token' => $token,
+            ],
+            'Login success.'
+        );
     }
 
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Logout success'
-        ]);
+        return ApiResponse::success(
+            null,
+            'Logout success.'
+        );
     }
 }

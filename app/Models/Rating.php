@@ -17,8 +17,7 @@ class Rating extends Model
     ];
 
     protected $casts = [
-        'score' => 'integer',
-        'watched_at' => 'datetime',
+        'score' => 'decimal:1',
     ];
 
     //Relasi

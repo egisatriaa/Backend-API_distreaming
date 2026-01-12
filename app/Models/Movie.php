@@ -25,8 +25,6 @@ class Movie extends Model
         'duration_minutes' => 'integer'
     ];
 
-    protected $hidden = ['ratings_avg_score'];
-
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'movie_categories');
@@ -35,5 +33,26 @@ class Movie extends Model
     public function ratings()
     {
         return $this->hasMany(Rating::class);
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return $this->ratings()->avg('score');
+    }
+
+    public function scopeFilterBySearch($query, $search)
+    {
+        if ($search) {
+            $query->where('title', 'like', '%' . $search . '%');
+        }
+        return $query;
+    }
+
+    public function scopeFilterByCategory($query, $categoryId)
+    {
+        if ($categoryId) {
+            $query->whereHas('categories', fn($q) => $q->where('id', $categoryId));
+        }
+        return $query;
     }
 }

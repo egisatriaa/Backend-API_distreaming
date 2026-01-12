@@ -16,10 +16,6 @@ class Category extends Model
         'description',
     ];
 
-    protected $casts = [
-        'category_name' => 'string',
-    ];
-
     public function movies(){
         return $this->belongsToMany(Movie::class, 'movie_categories');
     }

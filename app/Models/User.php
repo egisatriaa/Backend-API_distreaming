@@ -17,6 +17,7 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
+        'role',
     ];
 
     protected $hidden = [
@@ -36,4 +37,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(WatchHistory::class);
     }
+
+    public function ratings()
+{
+    return $this->hasMany(Rating::class);
+}
 }

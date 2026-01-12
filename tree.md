@@ -1,3 +1,4 @@
+
 ```
 distreaming_backend
 ├─ .editorconfig
@@ -75,6 +76,10 @@ distreaming_backend
 │     ├─ CreateMoviesAndCategoriesSeeder.php
 │     ├─ CreateUsersSeeder.php
 │     └─ DatabaseSeeder.php
+├─ DiStreaming-requirement.postman_collection.json
+├─ docker-compose.yml
+├─ dockerfile
+├─ laravel.zip
 ├─ package.json
 ├─ phpunit.xml
 ├─ public
@@ -82,6 +87,7 @@ distreaming_backend
 │  ├─ favicon.ico
 │  ├─ index.php
 │  └─ robots.txt
+├─ README.md
 ├─ README1.md
 ├─ resources
 │  ├─ css
@@ -100,12 +106,6 @@ distreaming_backend
 │  │  ├─ private
 │  │  └─ public
 │  ├─ framework
-│  │  ├─ cache
-│  │  │  └─ data
-│  │  ├─ sessions
-│  │  ├─ testing
-│  │  └─ views
-│  │     
 │  └─ logs
 ├─ tests
 │  ├─ Feature
