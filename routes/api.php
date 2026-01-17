@@ -29,9 +29,9 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
 
     // Endpoint yang bisa diakses user tapi identik dengan guest
     Route::get('/movies', [MoviePublicController::class, 'index']);
-    Route::get('/movies/{movie}', [MoviePublicController::class, 'show']);
+    Route::get('/movies/{publicMovie}', [MoviePublicController::class, 'show']);
     Route::get('/categories', [CategoryPublicController::class, 'index']);
-    Route::get('/categories/{category}', [CategoryPublicController::class, 'show']);
+    Route::get('/categories/{publicCategory}', [CategoryPublicController::class, 'show']);
 
     // Endpoint khusus user
     Route::post('/movies/{movie}/rate', [RatingController::class, 'store']);

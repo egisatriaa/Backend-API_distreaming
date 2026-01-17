@@ -12,7 +12,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CreateUsersSeeder::class,
             CreateMoviesAndCategoriesSeeder::class,
-            AddMoreMoviesSeeder::class,
         ]);
     }
 }

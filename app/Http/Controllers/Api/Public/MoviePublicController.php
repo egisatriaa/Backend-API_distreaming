@@ -12,30 +12,39 @@ use App\Helpers\ApiResponse;
 class MoviePublicController extends Controller
 {
     public function index(Request $request): JsonResponse
-    {
-        $query = Movie::with('categories')
+{
+    $query = Movie::with(['categories' => fn($q) => $q->whereNull('categories.deleted_at')])
             ->withAvg('ratings', 'score')
-            ->whereNull('deleted_at');;
+            ->whereNull('movies.deleted_at');
 
-        // Search by title 
-        $query->filterBySearch($request->search)
-            ->filterByCategory($request->category_id);
+    // filter by search
+    $query->filterBySearch($request->search);
 
-        $perPage = min($request->integer('per_page', 10), 100);
-        $movies = $query->orderByDesc('release_year')->paginate($perPage);
-
-        return ApiResponse::success(
-            MoviePublicResource::collection($movies->items()),
-            'Movies fetched successfully.',
-            200,
-            [
-                'current_page' => $movies->currentPage(),
-                'last_page' => $movies->lastPage(),
-                'per_page' => $movies->perPage(),
-                'total' => $movies->total(),
-            ]
-        );
+    // filter by category, jika category_id ada
+    if ($request->category_id) {
+        $categoryId = intval($request->category_id);
+        $query->whereHas('categories', function($q) use ($categoryId) {
+            $q->where('categories.id', $categoryId) 
+            ->whereNull('categories.deleted_at'); 
+        });
     }
+
+    $perPage = min($request->integer('per_page', 10), 100);
+    $movies = $query->orderByDesc('release_year')->paginate($perPage);
+
+    return ApiResponse::success(
+        MoviePublicResource::collection($movies->items()),
+        'Movies fetched successfully.',
+        200,
+        [
+            'current_page' => $movies->currentPage(),
+            'last_page' => $movies->lastPage(),
+            'per_page' => $movies->perPage(),
+            'total' => $movies->total(),
+        ]
+    );
+}
+
 
     public function show(Movie $publicMovie): JsonResponse
     {

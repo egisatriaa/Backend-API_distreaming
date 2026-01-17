@@ -17,7 +17,18 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->integer('duration_minutes');
             $table->integer('release_year');
-            $table->text('poster_url')->nullable();;
+            $table->text('poster_url')->nullable();
+
+            // === Kolom Baru untuk V2 ===
+            $table->string('title_img')->nullable();
+            $table->string('bg_img')->nullable();
+            $table->string('preview_img')->nullable();
+            $table->string('trailer_url')->nullable();
+            $table->string('age_limit', 10)->nullable();
+            $table->date('release_date')->nullable();
+            $table->enum('type', ['coming', 'now_playing', 'schedule'])->default('now_playing'); // <= Diupdate
+            $table->boolean('is_active')->default(true);
+
             $table->timestamps();
             $table->softDeletes();
         });

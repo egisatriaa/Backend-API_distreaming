@@ -50,6 +50,14 @@ class MovieController extends Controller
             'release_year' => $data['release_year'],
             'duration_minutes' => $data['duration_minutes'],
             'poster_url' => $data['poster_url'] ?? null,
+            'title_img' => $data['title_img'] ?? null,
+            'bg_img' => $data['bg_img'] ?? null,
+            'preview_img' => $data['preview_img'] ?? null,
+            'trailer_url' => $data['trailer_url'] ?? null,
+            'age_limit' => $data['age_limit'] ?? null,
+            'release_date' => $data['release_date'] ?? null,
+            'type' => $data['type'] ?? 'now_playing',
+            'is_active' => $data['is_active'] ?? true,
         ]);
 
         if (!empty($data['category_ids'])) {
@@ -83,6 +91,14 @@ class MovieController extends Controller
             'release_year' => $data['release_year'],
             'duration_minutes' => $data['duration_minutes'],
             'poster_url' => $data['poster_url'] ?? null,
+            'title_img' => $data['title_img'] ?? null,
+            'bg_img' => $data['bg_img'] ?? null,
+            'preview_img' => $data['preview_img'] ?? null,
+            'trailer_url' => $data['trailer_url'] ?? null,
+            'age_limit' => $data['age_limit'] ?? null,
+            'release_date' => $data['release_date'] ?? null,
+            'type' => $data['type'] ?? $movie->type,
+            'is_active' => $data['is_active'] ?? $movie->is_active,
         ]);
 
         if (array_key_exists('category_ids', $data)) {

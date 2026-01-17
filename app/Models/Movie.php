@@ -18,11 +18,21 @@ class Movie extends Model
         'duration_minutes',
         'release_year',
         'poster_url',
+        'title_img',
+        'bg_img',
+        'preview_img',
+        'trailer_url',
+        'age_limit',
+        'release_date',
+        'type',
+        'is_active',
     ];
 
     protected $casts = [
         'release_year' => 'integer',
-        'duration_minutes' => 'integer'
+        'duration_minutes' => 'integer',
+        'release_date' => 'date',
+        'is_active' => 'boolean',
     ];
 
     public function categories()
